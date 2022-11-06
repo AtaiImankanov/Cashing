@@ -1,4 +1,5 @@
 using lavAspMvclast.Models;
+using lavAspMvclast.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -30,9 +31,7 @@ namespace lavAspMvclast
             services.AddControllersWithViews();
             string connection = Configuration.GetConnectionString("DefaultConnection"); 
             services.AddDbContext<MobileContext>(options => options.UseNpgsql(connection)).AddIdentity<User,IdentityRole<int>>(options =>
-
             {
-
                 options.Password.RequiredLength = 5;   // минимальная длина
 
                 options.Password.RequireNonAlphanumeric = false;   // требуются ли не алфавитно - цифровые символы
@@ -44,6 +43,8 @@ namespace lavAspMvclast
                 options.Password.RequireDigit = false; // требуются ли цифры
 
             }).AddEntityFrameworkStores<MobileContext>();
+            services.AddTransient<TaskService>();
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

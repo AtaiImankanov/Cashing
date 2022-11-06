@@ -10,6 +10,8 @@ using lavAspMvclast.Enums;
 using lavAspMvclast.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Memory;
+using lavAspMvclast.Services;
 
 namespace lavAspMvclast.Controllers
 {
@@ -17,12 +19,14 @@ namespace lavAspMvclast.Controllers
     {
         private readonly MobileContext _context;
         private readonly UserManager<User> _userManager;
-
-        public ToDoTasksController(MobileContext context, UserManager<User> userManager )
+        private IMemoryCache cache;
+        private TaskService taskService;
+        public ToDoTasksController(MobileContext context, UserManager<User> userManager, IMemoryCache memoryCache, TaskService _taskService)
         {
+            taskService = _taskService;
             _context = context;
             _userManager = userManager;
-            var roles = context.Roles.ToList();
+            cache = memoryCache;
         }
 
         // GET: ToDoTasks
@@ -120,8 +124,8 @@ namespace lavAspMvclast.Controllers
                 return NotFound();
             }
 
-            var toDoTask = await _context.ToDoTasks
-                .FirstOrDefaultAsync(m => m.Id == id);
+            ToDoTask toDoTask = await taskService.GetUser(id);
+
             if (toDoTask == null)
             {
                 return NotFound();
@@ -161,7 +165,7 @@ namespace lavAspMvclast.Controllers
                 
                 _context.Add(toDoTask);
                 await _context.SaveChangesAsync();
-
+                taskService.AddUser(toDoTask);
                 return RedirectToAction(nameof(Index));
             }
             return View(toDoTask);
@@ -176,7 +180,8 @@ namespace lavAspMvclast.Controllers
                 return NotFound();
             }
 
-            var toDoTask = await _context.ToDoTasks.FindAsync(id);
+            ToDoTask toDoTask = await taskService.GetUser(id);
+
             if (toDoTask == null)
             {
                 return NotFound();
@@ -283,7 +288,7 @@ namespace lavAspMvclast.Controllers
             var idUser = _userManager.GetUserId(currentUser);
             toDoTask.CompliterId = Convert.ToInt32(idUser);
 
-            _context.ToDoTasks.Update(toDoTask);
+            _context.ToDoTasks.Update(toDoTask); 
             _context.SaveChanges();
             return Redirect("/ToDoTasks/Index");
         }

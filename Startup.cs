@@ -27,7 +27,7 @@ namespace lavAspMvclast
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddResponseCompression(option => option.EnableForHttps = true);
             services.AddControllersWithViews();
             string connection = Configuration.GetConnectionString("DefaultConnection"); 
             services.AddDbContext<MobileContext>(options => options.UseNpgsql(connection)).AddIdentity<User,IdentityRole<int>>(options =>
@@ -60,6 +60,7 @@ namespace lavAspMvclast
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.UseResponseCompression();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
